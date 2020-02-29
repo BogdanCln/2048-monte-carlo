@@ -18,12 +18,35 @@ window.fakeStorage = {
   }
 };
 
-function LocalStorageManager() {
-  this.bestScoreKey     = "bestScore";
-  this.gameStateKey     = "gameState";
+function LocalStorageManager(isSimulationEnv) {
+  this.bestScoreKey = "bestScore";
+  this.gameStateKey = "gameState";
+  this.isSimulation = isSimulationEnv;
 
-  var supported = this.localStorageSupported();
-  this.storage = supported ? window.localStorage : window.fakeStorage;
+  if (isSimulationEnv) {
+    this.storage = {
+      _data: {},
+
+      setItem: function (id, val) {
+        return this._data[id] = String(val);
+      },
+
+      getItem: function (id) {
+        return this._data.hasOwnProperty(id) ? this._data[id] : undefined;
+      },
+
+      removeItem: function (id) {
+        return delete this._data[id];
+      },
+
+      clear: function () {
+        return this._data = {};
+      }
+    }
+  } else {
+    var supported = this.localStorageSupported();
+    this.storage = supported ? window.localStorage : window.fakeStorage;
+  }
 }
 
 LocalStorageManager.prototype.localStorageSupported = function () {
@@ -50,7 +73,10 @@ LocalStorageManager.prototype.setBestScore = function (score) {
 
 // Game state getters/setters and clearing
 LocalStorageManager.prototype.getGameState = function () {
-  var stateJSON = this.storage.getItem(this.gameStateKey);
+  if (this.isSimulation)
+    return gameManager.storageManager.getGameState()
+
+    var stateJSON = this.storage.getItem(this.gameStateKey);
   return stateJSON ? JSON.parse(stateJSON) : null;
 };
 

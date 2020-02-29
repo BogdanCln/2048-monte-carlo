@@ -4,7 +4,7 @@
 - Get the current game state(4x4 array of values that are powers of 2)
 - 
     ```
-    IF game is not over(eg.: these is a null value in the array)
+    IF game is not over(eg.: there is a null value in the array)
       THEN GO TO 2
     ELSE STOP EXECUTION
 
