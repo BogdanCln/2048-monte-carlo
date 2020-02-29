@@ -97,8 +97,16 @@
     <div id="simulation-sandbox">
       <h2>Simulation sandbox</h2>
       <div>
-        <input id="simulation-speed" type="number" name="" id="" value="500" >
-        <a id="simulation-update-speed">Update speed (ms)</a>
+        <input id="simulation-speed" type="number" name="" id="" value="500">
+        <a id="simulation-update-speed">Update steps timeout</a>
+        <small>
+          <br>
+          Less than 1000 = CPU intensive fast version
+          <br>
+          Bigger than 1000 = Async version with forced timeouts for debug
+          <br>
+          Change is applied after the current simulation
+        </small>
         <hr>
       </div>
     </div>

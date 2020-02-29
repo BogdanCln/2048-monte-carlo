@@ -63,19 +63,19 @@ let simMan = {
         // and to avoid crashing the browser window
         simMan.simulateMoveEnv(0).then(async result => {
             scores[0] = [result, 0];
-            await sleep(simMan.speed);
+            if (simMan.speed < 1000) await sleep(simMan.speed);
 
             simMan.simulateMoveEnv(1).then(async result => {
                 scores[1] = [result, 1];
-                await sleep(simMan.speed);
+                if (simMan.speed < 1000) await sleep(simMan.speed);
 
                 simMan.simulateMoveEnv(2).then(async result => {
                     scores[2] = [result, 2];
-                    await sleep(simMan.speed);
+                    if (simMan.speed < 1000) await sleep(simMan.speed);
 
                     simMan.simulateMoveEnv(3).then(async result => {
                         scores[3] = [result, 3];
-                        await sleep(simMan.speed);
+                        if (simMan.speed < 1000) await sleep(simMan.speed);
 
                         let bestMove = scores.reduce((prev, current) => prev[0] <= current[0] ? current : prev)
                         DOMLogger("Highest score simulation: " + bestMove);
@@ -127,7 +127,10 @@ let simMan = {
                 resolve(localGameManager.score);
             }
             else {
-                let result = await simMan.randTillOver(localGameManager);
+                let result = simMan.speed < 1000 ?
+                    await simMan.randTillOver(localGameManager)
+                    :
+                    await simMan.randTillOverLazy(localGameManager);
                 DOMLogger("Score with first move as " + moveAlias + ": " + result);
                 console.log("Score with first move as " + moveAlias + ": " + result);
                 resolve(result)
@@ -148,6 +151,22 @@ let simMan = {
                     break;
                 }
             }
+        })
+    },
+
+    randTillOverLazy: localGameManager => {
+        return new Promise((resolve, reject) => {
+            let randomMoveI = setInterval(() => {
+                if (!localGameManager.over && simMan.SIM_IN_PROG) {
+                    let randMove = Math.floor(Math.random() * 10 % 5);
+                    try {
+                        localGameManager.inputManager.events.move[0](randMove);
+                    } catch (error) { }
+                } else {
+                    clearInterval(randomMoveI);
+                    resolve(localGameManager.score);
+                }
+            }, simMan.speed / 100);
         })
     }
 }
