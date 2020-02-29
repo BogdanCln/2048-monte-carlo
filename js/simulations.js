@@ -40,68 +40,109 @@ let simMan = {
     },
 
     simulationLoop: async _ => {
-        let scores = [
-            [(await simMan.simulateMoveEnv(0)), 0],
-            [(await simMan.simulateMoveEnv(1)), 1],
-            [(await simMan.simulateMoveEnv(2)), 2],
-            [(await simMan.simulateMoveEnv(3)), 3]
-        ]
 
-        let bestMove = scores.reduce((prev, current) => prev[0] <= current[0] ? current : prev)
-        console.log("bestMove", bestMove);
+        // full async mode will completly block the browser window until the main game is finished
+        // let scores = [
+        //     [(await simMan.simulateMoveEnv(0)), 0],
+        //     [(await simMan.simulateMoveEnv(1)), 1],
+        //     [(await simMan.simulateMoveEnv(2)), 2],
+        //     [(await simMan.simulateMoveEnv(3)), 3]
+        // ]
 
-        gameManager.inputManager.events.move[0](bestMove[1]);
+        let scores = [];
 
-        if (!gameManager.over && simMan.SIM_IN_PROG) {
-            simMan.simulationLoop();
-        } else {
-            simMan.stopSimulation();
-        }
+        // Doing the simulations synchronously so that we can see the final state in the simulation sandbox
+        // and to avoid crashing the browser window
+        simMan.simulateMoveEnv(0).then(async result => {
+            scores[0] = [result, 0];
+            await sleep(200);
+
+            simMan.simulateMoveEnv(1).then(async result => {
+                scores[1] = [result, 1];
+                await sleep(200);
+
+                simMan.simulateMoveEnv(2).then(async result => {
+                    scores[2] = [result, 2];
+                    await sleep(200);
+
+                    simMan.simulateMoveEnv(3).then(async result => {
+                        scores[3] = [result, 3];
+                        await sleep(200);
+
+                        let bestMove = scores.reduce((prev, current) => prev[0] <= current[0] ? current : prev)
+                        console.log("Highest score simulation: ", bestMove);
+
+                        gameManager.inputManager.events.move[0](bestMove[1]);
+
+                        if (!gameManager.over && simMan.SIM_IN_PROG) {
+                            simMan.simulationLoop();
+                        } else {
+                            simMan.stopSimulation();
+                        }
+                    })
+                })
+            })
+        })
+
     },
 
     stopSimulation: _ => {
         simMan.SIM_IN_PROG = false;
     },
 
-    simulateMoveEnv: (firstMove) => {
+    simulateMoveEnv: firstMove => {
         let localGameManager = new GameManager(4, KeyboardInputManager, HTMLActuator, LocalStorageManager, true);
 
-        // Tests
-        // setTimeout(() => {
-        //     localGameManager.inputManager.events.move[0](firstMove);
-        //     setTimeout(() => {
-        //         localGameManager.inputManager.events.move[0](1);
-        //         setTimeout(() => {
-        //             localGameManager.inputManager.events.move[0](2);
-        //         }, 500);
-        //     }, 500);
-        // }, 500);
+        let moveAlias;
+        switch (firstMove) {
+            case 0:
+                moveAlias = "up";
+                break;
+            case 1:
+                moveAlias = "right";
+                break;
+            case 2:
+                moveAlias = "down";
+                break;
+            case 3:
+                moveAlias = "left";
+                break;
+            default:
+        }
 
-        // return new Promise((resolve, reject) => {
-        //     setTimeout(() => {
-        //         resolve(1);
-        //     }, 3000);
-        // })
-
-        let moved = localGameManager.inputManager.events.move[0](firstMove);
-        if (!moved) return localGameManager.score;
-
-        return simMan.randTillOver(localGameManager);
+        return new Promise(async (resolve, reject) => {
+            let moved = localGameManager.inputManager.events.move[0](firstMove);
+            if (!moved) {
+                console.log("Can't move is the " + moveAlias + " direction.");
+                resolve(localGameManager.score);
+            }
+            else {
+                let result = await simMan.randTillOver(localGameManager);
+                console.log("Score with first move as " + moveAlias + ": " + result);
+                resolve(result)
+            }
+        })
     },
 
     randTillOver: localGameManager => {
         return new Promise((resolve, reject) => {
-            let randomMoveI = setInterval(() => {
+            while (true) {
                 if (!localGameManager.over && simMan.SIM_IN_PROG) {
                     let randMove = Math.floor(Math.random() * 10 % 5);
                     try {
                         localGameManager.inputManager.events.move[0](randMove);
                     } catch (error) { }
                 } else {
-                    clearInterval(randomMoveI);
                     resolve(localGameManager.score);
+                    break;
                 }
-            }, 0);
+            }
         })
     }
+}
+
+function sleep(time) {
+    return new Promise((resolve, _) => {
+        setTimeout(resolve, time);
+    })
 }
