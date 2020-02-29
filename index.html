@@ -26,8 +26,6 @@
 <body>
   <div class="container">
     <div id="game-sandbox">
-
-
       <div class="heading">
         <h1 class="title">2048</h1>
         <div class="scores-container">
@@ -37,9 +35,10 @@
       </div>
 
       <div class="above-game">
+
         <a class="simulation-button" id="start-sm">Start simulation</a>
         <a class="restart-button" id="stop-sm">Reset simulation</a>
-        <!-- <a class="restart-button">New Game</a> -->
+
       </div>
 
       <div class="game-container">
@@ -97,7 +96,14 @@
 
     <div id="simulation-sandbox">
       <h2>Simulation sandbox</h2>
+      <div>
+        <input id="simulation-speed" type="number" name="" id="" value="500" >
+        <a id="simulation-update-speed">Update speed (ms)</a>
+        <hr>
+      </div>
     </div>
+
+    <div id="simulation-logger"></div>
   </div>
 
 

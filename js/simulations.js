@@ -5,6 +5,8 @@ window.requestAnimationFrame(function () {
     document.querySelector("#stop-sm")
         .addEventListener("click", simMan.stopSimulation);
 
+    document.querySelector("#simulation-update-speed")
+        .addEventListener("click", simMan.updateSpeed);
 
     this.tileContainer = document.querySelector(".tile-container-sim");
     this.scoreContainer = document.querySelector(".score-container-sim");
@@ -29,6 +31,11 @@ window.requestAnimationFrame(function () {
 
 let simMan = {
     SIM_IN_PROG: false,
+    speed: 500,
+
+    updateSpeed: _ => {
+        simMan.speed = parseInt(document.querySelector("#simulation-speed").value);
+    },
 
     startSimulation: async _ => {
         simMan.stopSimulation();
@@ -40,6 +47,7 @@ let simMan = {
     },
 
     simulationLoop: async _ => {
+        clearDOMLogger();
 
         // full async mode will completly block the browser window until the main game is finished
         // let scores = [
@@ -55,22 +63,23 @@ let simMan = {
         // and to avoid crashing the browser window
         simMan.simulateMoveEnv(0).then(async result => {
             scores[0] = [result, 0];
-            await sleep(200);
+            await sleep(simMan.speed);
 
             simMan.simulateMoveEnv(1).then(async result => {
                 scores[1] = [result, 1];
-                await sleep(200);
+                await sleep(simMan.speed);
 
                 simMan.simulateMoveEnv(2).then(async result => {
                     scores[2] = [result, 2];
-                    await sleep(200);
+                    await sleep(simMan.speed);
 
                     simMan.simulateMoveEnv(3).then(async result => {
                         scores[3] = [result, 3];
-                        await sleep(200);
+                        await sleep(simMan.speed);
 
                         let bestMove = scores.reduce((prev, current) => prev[0] <= current[0] ? current : prev)
-                        console.log("Highest score simulation: ", bestMove);
+                        DOMLogger("Highest score simulation: " + bestMove);
+                        console.log("Highest score simulation: " + bestMove);
 
                         gameManager.inputManager.events.move[0](bestMove[1]);
 
@@ -113,11 +122,13 @@ let simMan = {
         return new Promise(async (resolve, reject) => {
             let moved = localGameManager.inputManager.events.move[0](firstMove);
             if (!moved) {
+                DOMLogger("Can't move is the " + moveAlias + " direction.");
                 console.log("Can't move is the " + moveAlias + " direction.");
                 resolve(localGameManager.score);
             }
             else {
                 let result = await simMan.randTillOver(localGameManager);
+                DOMLogger("Score with first move as " + moveAlias + ": " + result);
                 console.log("Score with first move as " + moveAlias + ": " + result);
                 resolve(result)
             }
@@ -145,4 +156,14 @@ function sleep(time) {
     return new Promise((resolve, _) => {
         setTimeout(resolve, time);
     })
+}
+
+function DOMLogger(message) {
+    let log = document.createElement("p")
+    log.innerHTML = message;
+    document.querySelector("#simulation-logger").appendChild(log);
+}
+
+function clearDOMLogger() {
+    document.querySelector("#simulation-logger").innerText = "";
 }

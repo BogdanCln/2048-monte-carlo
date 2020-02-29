@@ -27,3 +27,12 @@
 .hidden {
     display: none;
 }
+
+#simulation-logger {
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    left: calc(-100vw + 120%);
+    top: 0;
+    padding: 1em;
+}
