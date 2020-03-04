@@ -94,7 +94,7 @@ let simMan = {
 
                         if (simMan.speed < 1000) await sleep(simMan.speed * 2);
 
-                        if (!gameManager.over && simMan.SIM_IN_PROG) {
+                        if (!gameManager.over && !gameManager.won && simMan.SIM_IN_PROG) {
                             simMan.simulationLoop();
                         } else {
                             simMan.stopSimulation();
@@ -168,7 +168,7 @@ let simMan = {
     randTillOver: localGameManager => {
         return new Promise((resolve, reject) => {
             while (true) {
-                if (!localGameManager.over 
+                if (!localGameManager.over
                     && !localGameManager.won
                     && simMan.SIM_IN_PROG) {
                     let randMove = Math.floor(Math.random() * 10 % 4);
@@ -176,10 +176,11 @@ let simMan = {
                         localGameManager.inputManager.events.move[0](randMove);
                     } catch (error) {
                         console.error(randMove, error)
-                     }
+                    }
                 } else {
-                    if(localGameManager.won)
-                    console.warn("Got a simulation with 2048 tile!")
+                    if (localGameManager.won)
+                        console.warn("Got a simulation with 2048 tile!")
+
                     resolve(localGameManager.score);
                     break;
                 }
