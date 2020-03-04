@@ -1,5 +1,7 @@
 # 2048 game - Monte Carlo simulations
 
+![won](https://raw.githubusercontent.com/BogdanCln/2048-monte-carlo/master/2048.jpg)
+
 ## 1. 
 - Get the current game state(4x4 array of values that are powers of 2)
 - 
