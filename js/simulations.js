@@ -8,6 +8,9 @@ window.requestAnimationFrame(function () {
     document.querySelector("#simulation-update-speed")
         .addEventListener("click", simMan.updateSpeed);
 
+    document.querySelector("#simulation-update-iterations")
+        .addEventListener("click", simMan.updateIterations);
+
     this.tileContainer = document.querySelector(".tile-container-sim");
     this.scoreContainer = document.querySelector(".score-container-sim");
     this.bestContainer = document.querySelector(".best-container-sim");
@@ -31,7 +34,12 @@ window.requestAnimationFrame(function () {
 
 let simMan = {
     SIM_IN_PROG: false,
-    speed: 500,
+    speed: 100,
+    simIterations: 10,
+
+    updateIterations: _ => {
+        simMan.simIterations = parseInt(document.querySelector("#simulation-iterations").value);
+    },
 
     updateSpeed: _ => {
         simMan.speed = parseInt(document.querySelector("#simulation-speed").value);
@@ -40,10 +48,12 @@ let simMan = {
     startSimulation: async _ => {
         simMan.stopSimulation();
 
-        simMan.SIM_IN_PROG = true;
-        if (gameManager.over) gameManager.inputManager.events.restart[0]()
+        setTimeout(() => {
+            simMan.SIM_IN_PROG = true;
+            if (gameManager.over) gameManager.inputManager.events.restart[0]()
 
-        simMan.simulationLoop();
+            simMan.simulationLoop();
+        }, 500);
     },
 
     simulationLoop: async _ => {
@@ -75,13 +85,14 @@ let simMan = {
 
                     simMan.simulateMoveEnv(3).then(async result => {
                         scores[3] = [result, 3];
-                        if (simMan.speed < 1000) await sleep(simMan.speed);
 
                         let bestMove = scores.reduce((prev, current) => prev[0] <= current[0] ? current : prev)
                         DOMLogger("Highest score simulation: " + bestMove);
                         console.log("Highest score simulation: " + bestMove);
 
                         gameManager.inputManager.events.move[0](bestMove[1]);
+
+                        if (simMan.speed < 1000) await sleep(simMan.speed * 2);
 
                         if (!gameManager.over && simMan.SIM_IN_PROG) {
                             simMan.simulationLoop();
@@ -99,7 +110,9 @@ let simMan = {
         simMan.SIM_IN_PROG = false;
     },
 
-    simulateMoveEnv: firstMove => {
+    simulateMoveEnv: (firstMove, iterationNO = 0, scoresSum = 0) => {
+        console.log(iterationNO, scoresSum)
+
         let localGameManager = new GameManager(4, KeyboardInputManager, HTMLActuator, LocalStorageManager, true);
 
         let moveAlias;
@@ -122,18 +135,32 @@ let simMan = {
         return new Promise(async (resolve, reject) => {
             let moved = localGameManager.inputManager.events.move[0](firstMove);
             if (!moved) {
-                DOMLogger("Can't move is the " + moveAlias + " direction.");
-                console.log("Can't move is the " + moveAlias + " direction.");
-                resolve(localGameManager.score);
+                DOMLogger("Can't move is the " + moveAlias + " direction | " + localGameManager.score);
+                console.log("Can't move is the " + moveAlias + " direction | " + localGameManager.score);
+                resolve(localGameManager.score); // Can;t move from the very
             }
             else {
                 let result = simMan.speed < 1000 ?
                     await simMan.randTillOver(localGameManager)
                     :
                     await simMan.randTillOverLazy(localGameManager);
-                DOMLogger("Score with first move as " + moveAlias + ": " + result);
-                console.log("Score with first move as " + moveAlias + ": " + result);
-                resolve(result)
+
+                let logMsg = `Score with first move as ${moveAlias} on iteration #${iterationNO}:  ${result}`;
+                // DOMLogger(logMsg);
+                console.log(logMsg);
+
+                scoresSum += result;
+                iterationNO++;
+
+                if (iterationNO < simMan.simIterations)
+                    resolve(await simMan.simulateMoveEnv(firstMove, iterationNO, scoresSum));
+                else {
+                    let logMsg = `Avg score with first move as ${moveAlias} after ${iterationNO} iterations:  ${scoresSum / iterationNO}`;
+                    DOMLogger(logMsg);
+                    console.log(logMsg);
+
+                    resolve(scoresSum / iterationNO);
+                }
             }
         })
     },
@@ -142,10 +169,12 @@ let simMan = {
         return new Promise((resolve, reject) => {
             while (true) {
                 if (!localGameManager.over && simMan.SIM_IN_PROG) {
-                    let randMove = Math.floor(Math.random() * 10 % 5);
+                    let randMove = Math.floor(Math.random() * 10 % 4);
                     try {
                         localGameManager.inputManager.events.move[0](randMove);
-                    } catch (error) { }
+                    } catch (error) {
+                        console.error(randMove, error)
+                     }
                 } else {
                     resolve(localGameManager.score);
                     break;
@@ -166,7 +195,7 @@ let simMan = {
                     clearInterval(randomMoveI);
                     resolve(localGameManager.score);
                 }
-            }, simMan.speed / 100);
+            }, (simMan.speed === 1000) ? 0 : simMan.speed / 100);
         })
     }
 }

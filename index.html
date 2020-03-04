@@ -97,7 +97,7 @@
     <div id="simulation-sandbox">
       <h2>Simulation sandbox</h2>
       <div>
-        <input id="simulation-speed" type="number" name="" id="" value="500">
+        <input id="simulation-speed" type="number" name="" id="" value="100">
         <a id="simulation-update-speed">Update steps timeout</a>
         <small>
           <br>
@@ -106,6 +106,15 @@
           Bigger than 1000 = Async version with forced timeouts for debug
           <br>
           Change is applied after the current simulation
+        </small>
+        <hr>
+      </div>
+      <div>
+        <input id="simulation-iterations" type="number" name="" id="" value="10">
+        <a id="simulation-update-iterations">Update iterations per move</a>
+        <br>
+        <small>
+          More iterations = bigger scores, but much more processing time
         </small>
         <hr>
       </div>

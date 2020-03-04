@@ -1,4 +1,6 @@
 function HTMLActuator(simulationEnv) {
+  this.simulationEnv = simulationEnv;
+
   this.tileContainer = document.querySelector(".tile-container");
   this.scoreContainer = document.querySelector(".score-container");
   this.bestContainer = document.querySelector(".best-container");
@@ -15,6 +17,10 @@ function HTMLActuator(simulationEnv) {
 }
 
 HTMLActuator.prototype.actuate = function (grid, metadata) {
+  
+  // Avoiding DOM function for faster simulations
+  if (this.simulationEnv && simMan.speed <= 1000) return;
+
   var self = this;
 
   window.requestAnimationFrame(function () {
@@ -27,6 +33,7 @@ HTMLActuator.prototype.actuate = function (grid, metadata) {
         }
       });
     });
+
 
     self.updateScore(metadata.score);
     self.updateBestScore(metadata.bestScore);
