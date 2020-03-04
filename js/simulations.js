@@ -168,7 +168,9 @@ let simMan = {
     randTillOver: localGameManager => {
         return new Promise((resolve, reject) => {
             while (true) {
-                if (!localGameManager.over && simMan.SIM_IN_PROG) {
+                if (!localGameManager.over 
+                    && !localGameManager.won
+                    && simMan.SIM_IN_PROG) {
                     let randMove = Math.floor(Math.random() * 10 % 4);
                     try {
                         localGameManager.inputManager.events.move[0](randMove);
@@ -176,6 +178,8 @@ let simMan = {
                         console.error(randMove, error)
                      }
                 } else {
+                    if(localGameManager.won)
+                    console.warn("Got a simulation with 2048 tile!")
                     resolve(localGameManager.score);
                     break;
                 }
