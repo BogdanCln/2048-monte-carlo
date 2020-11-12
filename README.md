@@ -1,6 +1,6 @@
 # 2048 game - Monte Carlo simulations
 
-Live - https://bogdan.codes/share/fmi/2048-monte-carlo/
+Live - https://bogdancln.github.io/share/fmi/2048-monte-carlo/
 
 ![won](https://raw.githubusercontent.com/BogdanCln/2048-monte-carlo/master/2048.jpg)
 
